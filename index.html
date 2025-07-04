@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Bar Shaker - Telegram WebApp</title>
+
+  <!-- Monetag reklam skripti -->
+  <script src="//libtl.com/sdk.js" data-zone="9527089" data-sdk="show_9527089"></script>
+
+  <style>
+    body {
+      margin: 0; padding: 0;
+      height: 100vh;
+      background-image: url('https://i.postimg.cc/DZTBLf46/barlesieur-51-1.jpg');
+      background-size: cover;
+      background-position: center;
+      font-family: 'Arial', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      overflow-x: hidden;
+      padding-bottom: 40px;
+      color: white;
+      user-select: none;
+    }
+    #shaker-container {
+      position: relative;
+      width: 200px;
+      height: 300px;
+      cursor: pointer;
+      margin-bottom: 15px;
+    }
+    #shaker {
+      width: 200px;
+      height: 300px;
+      background-image: url('https://i.postimg.cc/zDLFvRQN/1751630764334.png');
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+      transition: transform 0.3s ease;
+    }
+    #progress-bar-container {
+      width: 200px;
+      height: 20px;
+      background: rgba(255,255,255,0.3);
+      border-radius: 12px;
+      margin-top: 15px;
+      box-shadow: inset 0 0 8px rgba(0,0,0,0.5);
+      overflow: hidden;
+    }
+    #progress-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #ff5f6d, #ffc371);
+      border-radius: 12px 0 0 12px;
+      transition: width 0.3s ease;
+    }
+    #progress-text {
+      margin-top: 8px;
+      font-weight: bold;
+      text-align: center;
+      text-shadow: 0 0 3px #000;
+    }
+    #shake-remaining {
+      margin-top: 10px;
+      font-weight: bold;
+      text-shadow: 0 0 3px black;
+      font-size: 18px;
+    }
+    #alert-popup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      width: 320px;
+      background: rgba(0,0,0,0.9);
+      border-radius: 20px;
+      transform: translate(-50%, -50%);
+      padding: 25px;
+      color: #ff6347;
+      font-size: 22px;
+      font-weight: 700;
+      text-align: center;
+      box-shadow: 0 0 30px #ff6347;
+      display: none;
+      z-index: 1300;
+    }
+    #alert-popup button {
+      margin-top: 20px;
+      background-color: #ff4500;
+      border: none;
+      border-radius: 12px;
+      padding: 10px 25px;
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 0 15px #ff4500;
+      margin-right: 10px;
+    }
+    #alert-popup #alert-close {
+      background-color: #777;
+    }
+    #alert-popup #alert-close:hover {
+      background-color: #444;
+    }
+  </style>
+</head>
+<body>
+
+<div id="shaker-container" title="Shake et">
+  <div id="shaker"></div>
+  <div id="progress-bar-container">
+    <div id="progress-bar"></div>
+  </div>
+  <div id="progress-text">0 / 100</div>
+  <div id="shake-remaining">Qalan Shake: <span id="shake-count">10</span></div>
+</div>
+
+<div id="alert-popup">
+  Shake haqqınız bitdi!<br />1000 Shake almaq üçün reklam izləyin.
+  <br />
+  <button id="buy-shake">Shake Al</button>
+  <button id="alert-close">Bağla</button>
+</div>
+
+<script>
+  if (window.Telegram?.WebApp) {
+    Telegram.WebApp.ready();
+    document.body.style.height = window.innerHeight + "px";
+  }
+
+  const shaker = document.getElementById('shaker');
+  const progressBar = document.getElementById('progress-bar');
+  const progressText = document.getElementById('progress-text');
+  const shakeCountSpan = document.getElementById('shake-count');
+  const alertPopup = document.getElementById('alert-popup');
+  const buyShakeBtn = document.getElementById('buy-shake');
+  const alertClose = document.getElementById('alert-close');
+
+  let progress = 0;
+  let shakeCount = 10;
+
+  function updateShakeDisplay() {
+    shakeCountSpan.textContent = shakeCount;
+  }
+
+  function doShakeAnimation() {
+    shaker.style.transform = "rotate(15deg)";
+    setTimeout(() => {
+      shaker.style.transform = "rotate(-15deg)";
+    }, 150);
+    setTimeout(() => {
+      shaker.style.transform = "rotate(0deg)";
+    }, 300);
+  }
+
+  shaker.addEventListener('click', () => {
+    if (shakeCount <= 0) {
+      alertPopup.style.display = 'block';
+      return;
+    }
+
+    if (progress < 100) {
+      shakeCount--;
+      updateShakeDisplay();
+      progress += 10;
+      progressBar.style.width = `${progress}%`;
+      progressText.textContent = `${progress} / 100`;
+      doShakeAnimation();
+
+      if (progress >= 100) {
+        alert('İçki hazırdır!');
+        progress = 0;
+        progressBar.style.width = '0%';
+        progressText.textContent = '0 / 100';
+      }
+    }
+  });
+
+  buyShakeBtn.addEventListener('click', () => {
+    // Reklam göstər və baxıldıqdan sonra shake əlavə et
+    if (typeof show_9527089 === 'function') {
+      show_9527089().then(() => {
+        shakeCount += 10;
+        updateShakeDisplay();
+        alert('Reklam izlədiniz! 10 shake əlavə olundu.');
+        alertPopup.style.display = 'none';
+      }).catch(() => {
+        alert('Reklam göstərilə bilmədi. Yenidən cəhd edin.');
+      });
+    } else {
+      alert('Reklam funksiyası tapılmadı.');
+    }
+  });
+
+  alertClose.addEventListener('click', () => {
+    alertPopup.style.display = 'none';
+  });
+
+  updateShakeDisplay();
+</script>
+
+</body>
+</html>
